@@ -1,0 +1,11 @@
+[package]
+name = "topfew"
+version = "0.1.0"
+authors = ["Dirkjan Ochtman <dirkjan@ochtman.nl>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1"
+err-derive = "0.2.4"
+regex = "1"
+structopt = "0.3"
