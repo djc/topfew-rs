@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader, Read};
+use std::io::BufRead;
 
 mod counter;
 mod key_finder;
@@ -6,12 +6,11 @@ mod key_finder;
 pub use counter::{Counter, KeyCount};
 pub use key_finder::KeyFinder;
 
-pub fn top_few_from_stream<T: Read>(
+pub fn top_few_from_stream<T: BufRead>(
     reader: T,
     kf: &KeyFinder,
     size: usize,
 ) -> Result<Vec<KeyCount>, anyhow::Error> {
-    let reader = BufReader::new(reader);
     let mut counter = Counter::new(size);
     for ln in reader.lines() {
         let ln = ln?;
