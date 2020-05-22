@@ -18,7 +18,6 @@ impl KeyFinder {
                 keys.len(),
                 last,
                 (0..=last)
-                    .into_iter()
                     .map(|i| keys.contains(&(i + 1)))
                     .collect::<Vec<_>>(),
             )
