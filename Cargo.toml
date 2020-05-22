@@ -2,6 +2,11 @@
 name = "topfew"
 version = "0.1.0"
 authors = ["Dirkjan Ochtman <dirkjan@ochtman.nl>"]
+license = "GPL-3.0"
+repository = "https://github.com/djc/topfew-rs"
+description = "CLI to find high frequency occurrences in structured text files"
+keywords = ["cli"]
+categories = ["Command line utilities", "Text processing"]
 edition = "2018"
 
 [dependencies]
