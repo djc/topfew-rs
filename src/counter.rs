@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-
 #[derive(Default)]
 pub struct Counter {
     counts: HashMap<String, u64>,
@@ -12,7 +11,10 @@ pub struct Counter {
 
 impl Counter {
     pub fn new(size: usize) -> Self {
-        Self { size, ..Default::default() }
+        Self {
+            size,
+            ..Default::default()
+        }
     }
 
     pub fn add(&mut self, key: Cow<'_, str>) {
@@ -46,7 +48,10 @@ impl Counter {
     pub fn top(&self) -> Vec<KeyCount> {
         let mut top = Vec::with_capacity(self.size);
         for (key, &count) in &self.top {
-            top.push(KeyCount { count, key: key.into() });
+            top.push(KeyCount {
+                count,
+                key: key.into(),
+            });
         }
 
         top.sort_unstable();

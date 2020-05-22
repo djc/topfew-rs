@@ -26,13 +26,16 @@ impl KeyFinder {
             Some(keys) => keys,
         };
 
-        let fields = self.sep.splitn(record, keys[keys.len() - 1] + 2).collect::<Vec<_>>();
+        let fields = self
+            .sep
+            .splitn(record, keys[keys.len() - 1] + 2)
+            .collect::<Vec<_>>();
         if fields.len() <= keys[keys.len() - 1] {
             return Err(anyhow!("not enough fields to make key"));
         }
 
         if keys.len() == 1 {
-            return Ok(fields[keys[0]].into())
+            return Ok(fields[keys[0]].into());
         }
 
         let mut s = String::new();
