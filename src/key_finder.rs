@@ -4,15 +4,25 @@ use anyhow::{anyhow, Error};
 use regex::Regex;
 
 pub struct KeyFinder {
-    keys: Option<Vec<usize>>,
+    keys: Option<(usize, usize, Vec<bool>)>,
     sep: Regex,
 }
 
 impl KeyFinder {
-    pub fn new(mut keys: Option<Vec<usize>>) -> Result<Self, Error> {
-        if let Some(keys) = &mut keys {
-            keys.iter_mut().for_each(|v| *v -= 1);
-        }
+    pub fn new(keys: Option<Vec<usize>>) -> Result<Self, Error> {
+        let keys = keys.map(|mut keys| {
+            keys.sort();
+
+            let last = *keys.last().unwrap();
+            (
+                keys.len(),
+                last,
+                (0..=last)
+                    .into_iter()
+                    .map(|i| keys.contains(&(i + 1)))
+                    .collect::<Vec<_>>(),
+            )
+        });
         Ok(KeyFinder {
             keys,
             sep: Regex::new("\\s+")?,
@@ -20,30 +30,36 @@ impl KeyFinder {
     }
 
     pub fn key<'a>(&self, record: &'a str) -> Result<Cow<'a, str>, Error> {
-        let keys = match &self.keys {
+        let (num, last, keep) = match &self.keys {
             None => return Ok(record.into()),
-            Some(keys) if keys.is_empty() => return Ok(record.into()),
-            Some(keys) => keys,
+            Some((num, _, _)) if *num == 0 => return Ok(record.into()),
+            Some((num, last, keep)) => (num, last, keep),
         };
 
-        let fields = self
-            .sep
-            .splitn(record, keys[keys.len() - 1] + 2)
-            .collect::<Vec<_>>();
-        if fields.len() <= keys[keys.len() - 1] {
-            return Err(anyhow!("not enough fields to make key"));
+        let mut fields = keep
+            .iter()
+            .zip(self.sep.splitn(record, last + 2))
+            .filter_map(|(keep, field)| if *keep { Some(field) } else { None });
+
+        if *num == 1 {
+            return match fields.next() {
+                Some(f) => Ok(f.into()),
+                None => Err(anyhow!("not enough fields to make key")),
+            };
         }
 
-        if keys.len() == 1 {
-            return Ok(fields[keys[0]].into());
-        }
-
+        let mut found = 0;
         let mut s = String::new();
-        s.push_str(fields[keys[0]]);
-        for key in keys.iter().skip(1) {
+        for f in fields {
             s.push(' ');
-            s.push_str(fields[*key]);
+            s.push_str(f);
+            found += 1;
         }
-        Ok(s.into())
+
+        if found == *num {
+            Ok(s.into())
+        } else {
+            Err(anyhow!("not enough fields to make key"))
+        }
     }
 }
