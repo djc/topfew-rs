@@ -13,7 +13,7 @@ The Rust version currently has slightly fewer non-test SLOC than the Go version.
 topfew 0.1.0
 
 USAGE:
-    topfew [OPTIONS] <file> --fields <fields>
+    tf [OPTIONS] <file> --fields <fields>
 
 FLAGS:
     -h, --help       Prints help information
