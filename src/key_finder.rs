@@ -9,7 +9,7 @@ pub struct KeyFinder {
 }
 
 impl KeyFinder {
-    pub fn new(keys: Option<Vec<usize>>) -> Result<Self, Error> {
+    pub fn new(keys: Option<Vec<usize>>, sep: Regex) -> Result<Self, Error> {
         let keys = keys.map(|mut keys| {
             keys.sort();
 
@@ -23,10 +23,7 @@ impl KeyFinder {
                     .collect::<Vec<_>>(),
             )
         });
-        Ok(KeyFinder {
-            keys,
-            sep: Regex::new("\\s+")?,
-        })
+        Ok(KeyFinder { keys, sep })
     }
 
     pub fn key<'a>(&self, record: &'a str) -> Result<Cow<'a, str>, Error> {

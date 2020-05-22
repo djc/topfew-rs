@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use anyhow::Error;
 use memmap::MmapOptions;
+use regex::Regex;
 use structopt::StructOpt;
 
 use topfew::{top_few_from_stream, KeyFinder};
@@ -12,7 +13,8 @@ fn main() -> Result<(), Error> {
     let options = Options::from_args();
     let file = File::open(options.file)?;
     let bytes = unsafe { MmapOptions::new().map(&file)? };
-    let kf = KeyFinder::new(Some(options.fields.indices))?;
+    let sep = Regex::new(&options.regex)?;
+    let kf = KeyFinder::new(Some(options.fields.indices), sep)?;
     let top_list = top_few_from_stream(Cursor::new(bytes), &kf, options.num)?;
     for kc in top_list {
         println!("{} {}", kc.count, kc.key);
@@ -23,10 +25,16 @@ fn main() -> Result<(), Error> {
 #[derive(Debug, StructOpt)]
 #[structopt(name = "topfew")]
 struct Options {
+    /// Fields to use as part of the line's key
     #[structopt(long, short)]
     fields: FieldSpec,
+    /// Top number of matches to show
     #[structopt(long, short = "n", default_value = "10")]
     num: usize,
+    /// Regular expression used to split lines into fields
+    #[structopt(long, short = "e", default_value = "\\s+")]
+    regex: String,
+    /// File to search
     file: String,
 }
 
