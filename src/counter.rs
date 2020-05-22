@@ -6,13 +6,13 @@ pub struct Counter {
     counts: HashMap<String, u64>,
     top: HashMap<String, u64>,
     threshold: u64,
-    size: usize,
+    num: usize,
 }
 
 impl Counter {
-    pub fn new(size: usize) -> Self {
+    pub fn new(num: usize) -> Self {
         Self {
-            size,
+            num,
             ..Default::default()
         }
     }
@@ -34,19 +34,19 @@ impl Counter {
         }
         self.top.insert(key.into(), count);
 
-        if self.top.len() < self.size * 2 {
+        if self.top.len() < self.num * 2 {
             return;
         }
 
         let mut top_values = self.top.values().collect::<Vec<_>>();
         top_values.sort_unstable();
-        let threshold = *top_values[self.size as usize - 1];
+        let threshold = *top_values[self.num as usize - 1];
         self.threshold = threshold;
         self.top.retain(|_, v| *v > threshold);
     }
 
     pub fn top(&self) -> Vec<KeyCount> {
-        let mut top = Vec::with_capacity(self.size);
+        let mut top = Vec::with_capacity(self.num);
         for (key, &count) in &self.top {
             top.push(KeyCount {
                 count,

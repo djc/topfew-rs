@@ -9,9 +9,9 @@ pub use key_finder::KeyFinder;
 pub fn top_few_from_stream<T: BufRead>(
     reader: T,
     kf: &KeyFinder,
-    size: usize,
+    num: usize,
 ) -> Result<Vec<KeyCount>, anyhow::Error> {
-    let mut counter = Counter::new(size);
+    let mut counter = Counter::new(num);
     for ln in reader.lines() {
         let ln = ln?;
         if let Ok(key) = kf.key(&ln) {
