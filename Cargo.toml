@@ -9,3 +9,8 @@ anyhow = "1"
 err-derive = "0.2.4"
 regex = "1"
 structopt = "0.3"
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+debug = true
