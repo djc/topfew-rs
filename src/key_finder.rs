@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use anyhow::{anyhow, Error};
 use regex::Regex;
+use std::boxed::Box;
 
 pub struct KeyFinder {
     keys: Option<Vec<usize>>,
@@ -12,6 +13,7 @@ impl KeyFinder {
     pub fn new(mut keys: Option<Vec<usize>>) -> Result<Self, Error> {
         if let Some(keys) = &mut keys {
             keys.iter_mut().for_each(|v| *v -= 1);
+            keys.sort();
         }
         Ok(KeyFinder {
             keys,
@@ -20,27 +22,38 @@ impl KeyFinder {
     }
 
     pub fn key<'a>(&self, record: &'a str) -> Result<Cow<'a, str>, Error> {
-        let keys = match &self.keys {
+        let kkeys = match &self.keys {
             None => return Ok(record.into()),
             Some(keys) if keys.is_empty() => return Ok(record.into()),
             Some(keys) => keys,
         };
 
-        let fields = self.sep.splitn(record, keys[keys.len() - 1] + 2).collect::<Vec<_>>();
-        if fields.len() <= keys[keys.len() - 1] {
+        let mut keys = kkeys.iter();
+        let mut fields: Box<dyn Iterator<Item = _>> = Box::new(
+            self.sep
+                .splitn(record, kkeys[kkeys.len() - 1] + 2)
+                .skip(*(keys.next().unwrap())),
+        );
+        let mut s;
+        if let Some(field) = fields.next() {
+            s = Cow::from(field);
+        } else {
             return Err(anyhow!("not enough fields to make key"));
         }
 
-        if keys.len() == 1 {
-            return Ok(fields[keys[0]].into())
+        let mut last = 0;
+        for key in keys {
+            fields = Box::new(fields.skip(key - last));
+            last = key + 1;
+            if let Some(field) = fields.next() {
+                let s1 = s.to_mut();
+                s1.push(' ');
+                s1.push_str(field);
+            } else {
+                return Err(anyhow!("not enough fields to make key"));
+            }
         }
 
-        let mut s = String::new();
-        s.push_str(fields[keys[0]]);
-        for key in keys.iter().skip(1) {
-            s.push(' ');
-            s.push_str(fields[*key]);
-        }
-        Ok(s.into())
+        Ok(s)
     }
 }
