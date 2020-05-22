@@ -27,3 +27,5 @@ OPTIONS:
 ARGS:
     <file>    File to search
 ```
+
+If you have the Rust toolchain installed, you can install it with `cargo install topfew`.
