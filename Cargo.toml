@@ -6,7 +6,7 @@ license = "GPL-3.0"
 repository = "https://github.com/djc/topfew-rs"
 description = "CLI to find high frequency occurrences in structured text files"
 keywords = ["cli"]
-categories = ["Command line utilities", "Text processing"]
+categories = ["command-line-utilities", "text-processing"]
 edition = "2018"
 
 [dependencies]
