@@ -32,7 +32,7 @@ struct Options {
     #[structopt(long, short = "n", default_value = "10")]
     num: usize,
     /// Regular expression used to split lines into fields
-    #[structopt(long, short = "e", default_value = "\\s+")]
+    #[structopt(long, short = "e", default_value = "[ \\t]")]
     regex: String,
     /// File to search
     file: String,
