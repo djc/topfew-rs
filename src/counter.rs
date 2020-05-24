@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -17,7 +16,7 @@ impl Counter {
         }
     }
 
-    pub fn add(&mut self, key: Cow<'_, str>) {
+    pub fn add(&mut self, key: &str) {
         let count = match self.counts.get_mut(&*key) {
             Some(count) => {
                 *count += 1;

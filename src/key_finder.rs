@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use anyhow::{anyhow, Error};
 use regex::Regex;
 
@@ -25,7 +23,7 @@ impl KeyFinder {
         Ok(KeyFinder { keys, sep })
     }
 
-    pub fn key<'a>(&self, record: &'a str) -> Result<Cow<'a, str>, Error> {
+    pub fn key<'a>(&self, record: &'a str, s: &'a mut String) -> Result<&'a str, Error> {
         let (num, last, keep) = match &self.keys {
             None => return Ok(record.into()),
             Some((num, _, _)) if *num == 0 => return Ok(record.into()),
@@ -45,7 +43,6 @@ impl KeyFinder {
         }
 
         let mut found = 0;
-        let mut s = String::new();
         for f in fields {
             s.push(' ');
             s.push_str(f);
@@ -53,7 +50,7 @@ impl KeyFinder {
         }
 
         if found == *num {
-            Ok(s.into())
+            Ok(s)
         } else {
             Err(anyhow!("not enough fields to make key"))
         }
