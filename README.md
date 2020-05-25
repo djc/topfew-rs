@@ -22,7 +22,7 @@ FLAGS:
 OPTIONS:
     -f, --fields <fields>    Fields to use as part of the line's key
     -n, --num <num>          Top number of matches to show [default: 10]
-    -e, --regex <regex>      Regular expression used to split lines into fields [default: \s+]
+    -e, --regex <regex>      Regular expression used to split lines into fields [default: [ \t]]
 
 ARGS:
     <file>    File to search
