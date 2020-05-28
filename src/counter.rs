@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 #[derive(Default)]
 pub struct Counter {
-    counts: HashMap<String, u64>,
-    top: HashMap<String, u64>,
+    counts: AHashMap<String, u64>,
+    top: AHashMap<String, u64>,
     threshold: u64,
     num: usize,
 }

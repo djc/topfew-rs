@@ -15,6 +15,7 @@ err-derive = "0.2.4"
 memmap = "0.7"
 regex = "1"
 structopt = "0.3"
+ahash = "0.3"
 
 [profile.release]
 codegen-units = 1
