@@ -8,6 +8,8 @@ This is a reimplementation of that tool in idiomatic stable Rust.
 The initial Rust version was 2.9x faster than Tim's Go implementation;
 current master appears to be around 6.7x faster thanks to some additional optimizations.
 The Rust version currently has slightly fewer non-test SLOC than the Go version.
+Thanks to [Thomas Andreas Jung](https://github.com/blob79] for contributing substantial
+performance improvements.
 
 ```
 topfew 0.1.0
