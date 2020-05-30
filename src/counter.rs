@@ -9,22 +9,23 @@ pub struct Counter {
 }
 
 impl Counter {
-    pub fn new(num: usize) -> Self {
+    pub fn new(num: Option<usize>) -> Self {
         Self {
-            num,
+            num: num.unwrap_or(0),
+            threshold: num.map(|_| 0).unwrap_or(u64::MAX),
             ..Default::default()
         }
     }
 
-    pub fn add(&mut self, key: &str) {
+    pub fn add(&mut self, key: &str, added: u64) {
         let count = match self.counts.get_mut(key) {
             Some(count) => {
-                *count += 1;
+                *count += added;
                 *count
             }
             None => {
-                self.counts.insert(key.to_owned(), 1);
-                1
+                self.counts.insert(key.to_owned(), added);
+                added
             }
         };
 
@@ -61,6 +62,12 @@ impl Counter {
         top.sort_unstable();
         top.reverse();
         top
+    }
+
+    pub fn merge(&mut self, r: Counter) {
+        for (key, count) in r.counts.iter() {
+            self.add(key, *count);
+        }
     }
 }
 
