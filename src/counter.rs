@@ -17,13 +17,13 @@ impl Counter {
     }
 
     pub fn add(&mut self, key: &str) {
-        let count = match self.counts.get_mut(&*key) {
+        let count = match self.counts.get_mut(key) {
             Some(count) => {
                 *count += 1;
                 *count
             }
             None => {
-                self.counts.insert((&*key).to_owned(), 1);
+                self.counts.insert(key.to_owned(), 1);
                 1
             }
         };
@@ -31,8 +31,13 @@ impl Counter {
         if count < self.threshold {
             return;
         }
-        self.top.insert(key.into(), count);
 
+        if let Some(t) = self.top.get_mut(key) {
+            *t = count;
+            return;
+        }
+
+        self.top.insert(key.to_owned(), count);
         if self.top.len() < self.num * 2 {
             return;
         }
