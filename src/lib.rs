@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use rayon::prelude::*;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 mod chunks;
 mod counter;
