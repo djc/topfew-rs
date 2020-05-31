@@ -17,7 +17,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
     });
 
     let cpus = num_cpus::get() as u64;
-    let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE) as usize;
+    let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE);
     Ok(Chunks {
         chunk_data: Box::new(it),
         position: 0,
@@ -31,7 +31,7 @@ pub struct Chunks<T: BufRead + Seek> {
     chunk_data: Box<dyn Iterator<Item = anyhow::Result<T>> + Send>,
     position: u64,
     starts: Box<dyn Iterator<Item = u64>>,
-    chunk_size: usize,
+    chunk_size: u64,
     size: u64,
 }
 
@@ -61,7 +61,7 @@ pub struct Chunk<C> {
 impl<C> Chunk<C> {
     pub fn new(
         mut c: C,
-        chunk: usize,
+        chunk_size: u64,
         mut position: u64,
         start: u64,
         size: u64,
@@ -95,7 +95,7 @@ impl<C> Chunk<C> {
         let c = Self {
             lines,
             position,
-            end: size.min(start + chunk as u64),
+            end: size.min(start + chunk_size),
         };
         Ok((c, position))
     }
@@ -116,13 +116,13 @@ where
     }
 }
 
-fn split(chunk: u64, size: u64) -> impl Iterator<Item = u64> {
-    let e = if chunk == 0 {
+fn split(chunk_size: u64, size: u64) -> impl Iterator<Item = u64> {
+    let e = if chunk_size == 0 {
         0
     } else {
-        size / chunk + 1.min(size % chunk)
+        size / chunk_size + 1.min(size % chunk_size)
     };
-    (0..e).map(move |i| i * chunk)
+    (0..e).map(move |i| i * chunk_size)
 }
 
 const MIN_CHUNK_SIZE: u64 = 512 * 1024;
@@ -136,27 +136,33 @@ mod tests {
 
     #[test]
     fn test_split() {
-        fn s(chunk: u64, size: u64) -> TestResult {
-            let actual = split(chunk, size).collect::<Vec<_>>();
+        fn s(chunk_size: u64, size: u64) -> TestResult {
+            let actual = split(chunk_size, size).collect::<Vec<_>>();
             let l = actual.len() as u64;
-            if chunk != 0 {
-                println!("{:?} {} {} {}", actual, l, size / chunk + 1, size / chunk);
+            if chunk_size != 0 {
+                println!(
+                    "{:?} {} {} {}",
+                    actual,
+                    l,
+                    size / chunk_size + 1,
+                    size / chunk_size
+                );
             }
             TestResult::from_bool(
-                (chunk == 0 && l == 0)
+                (chunk_size == 0 && l == 0)
                     || ((0..(actual.len() as i64 - 1))
-                        .all(|i| actual[i as usize + 1] - actual[i as usize] == chunk)
-                        && (if size % chunk == 0 {
-                            size / chunk == l
+                        .all(|i| actual[i as usize + 1] - actual[i as usize] == chunk_size)
+                        && (if size % chunk_size == 0 {
+                            size / chunk_size == l
                         } else {
-                            size / chunk == l - 1
+                            size / chunk_size == l - 1
                         })),
             )
         }
         quickcheck::QuickCheck::new().quickcheck(s as fn(_, _) -> TestResult);
     }
 
-    fn mem_chunks<'a>(mem: Vec<u8>, chunk_size: usize, size: u64) -> Chunks<impl BufRead + Seek> {
+    fn mem_chunks<'a>(mem: Vec<u8>, chunk_size: u64, size: u64) -> Chunks<impl BufRead + Seek> {
         let it = (0..usize::MAX).map(move |_| Ok(Cursor::new(mem.clone())));
         Chunks {
             chunk_data: Box::new(it),
@@ -169,8 +175,8 @@ mod tests {
 
     #[test]
     fn test_chunks() {
-        fn test_split_buf(i: Vec<String>, chunk_size: usize) -> TestResult {
-            fn t(b: String, chunk_size: usize) -> anyhow::Result<()> {
+        fn test_split_buf(i: Vec<String>, chunk_size: u64) -> TestResult {
+            fn t(b: String, chunk_size: u64) -> anyhow::Result<()> {
                 let chunks: Vec<_> =
                     mem_chunks(b.as_bytes().to_owned(), chunk_size, b.len() as u64)
                         .into_iter()
