@@ -28,9 +28,7 @@ pub fn chunks(path: &Path) -> anyhow::Result<Chunks<BufReader<File>>> {
 
 fn chunk_size(size: u64) -> usize {
     let cpus = num_cpus::get() as u64;
-    let lower = 1 << 19; // avoid opening too many files
-    let upper = 1 << 26; // don't use to much mem per chunk
-    upper.min(size / cpus / 10).max(lower) as usize
+    MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE) as usize
 }
 
 pub struct Chunks<T: BufRead + Seek> {
@@ -129,6 +127,9 @@ fn split(chunk: u64, size: u64) -> impl Iterator<Item = u64> {
     };
     (0..e).map(move |i| i * chunk)
 }
+
+const MIN_CHUNK_SIZE: u64 = 512 * 1024;
+const MAX_CHUNK_SIZE: u64 = 64 * 1024 * 1024;
 
 #[cfg(test)]
 mod tests {
