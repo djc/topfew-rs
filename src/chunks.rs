@@ -20,7 +20,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
     let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE) as usize;
     Ok(Chunks {
         chunk_data: Box::new(it),
-        current: 0,
+        position: 0,
         starts: Box::new(split(chunk_size as u64, size)),
         chunk_size,
         size,
@@ -29,7 +29,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
 
 pub struct Chunks<T: BufRead + Seek> {
     chunk_data: Box<dyn Iterator<Item = anyhow::Result<T>> + Send>,
-    current: u64,
+    position: u64,
     starts: Box<dyn Iterator<Item = u64>>,
     chunk_size: usize,
     size: u64,
@@ -45,8 +45,8 @@ where
         let start = self.starts.next()?;
         let f = self.chunk_data.next()?.ok()?;
         let (chunk, position) =
-            Chunk::new(f, self.chunk_size, self.current, start, self.size).ok()?;
-        self.current = position;
+            Chunk::new(f, self.chunk_size, self.position, start, self.size).ok()?;
+        self.position = position;
         Some(chunk)
     }
 }
@@ -54,7 +54,7 @@ where
 #[derive(Debug)]
 pub struct Chunk<C> {
     lines: std::io::Lines<C>,
-    pos: u64,
+    position: u64,
     end: u64,
 }
 
@@ -62,16 +62,16 @@ impl<C> Chunk<C> {
     pub fn new(
         mut c: C,
         chunk: usize,
-        mut current: u64,
+        mut position: u64,
         start: u64,
         size: u64,
     ) -> anyhow::Result<(Self, u64)>
     where
         C: Seek + BufRead,
     {
-        let skip = if current > start {
+        let skip = if position > start {
             true
-        } else if start != current {
+        } else if start != position {
             c.seek(SeekFrom::Start(start - 1))?;
             let mut buf = [0 as u8; 1];
             if let Ok(1) = c.read(&mut buf) {
@@ -84,7 +84,7 @@ impl<C> Chunk<C> {
         };
 
         c.seek(SeekFrom::Start(start))?;
-        current = if skip {
+        position = if skip {
             let mut skip_leader = String::new();
             let _ = c.read_line(&mut skip_leader)?;
             start + skip_leader.len() as u64
@@ -94,10 +94,10 @@ impl<C> Chunk<C> {
         let lines = c.lines();
         let c = Self {
             lines,
-            pos: current,
+            position,
             end: size.min(start + chunk as u64),
         };
-        Ok((c, current))
+        Ok((c, position))
     }
 }
 
@@ -107,11 +107,11 @@ where
 {
     type Item = String;
     fn next(&mut self) -> Option<String> {
-        if self.pos >= self.end {
+        if self.position >= self.end {
             return None;
         }
         let l = self.lines.next()?.ok()?;
-        self.pos += l.len() as u64 + 1;
+        self.position += l.len() as u64 + 1;
         Some(l)
     }
 }
@@ -160,7 +160,7 @@ mod tests {
         let it = (0..usize::MAX).map(move |_| Ok(Cursor::new(mem.clone())));
         Chunks {
             chunk_data: Box::new(it),
-            current: 0,
+            position: 0,
             starts: Box::new(split(chunk_size as u64, size)),
             chunk_size,
             size,
