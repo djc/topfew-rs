@@ -16,12 +16,12 @@ pub fn chunks(path: &Path) -> anyhow::Result<Chunks<BufReader<File>>> {
             .map(BufReader::new)
             .with_context(|| "Failed")
     });
-    let chunk = chunk_size(size);
+    let chunk_size = chunk_size(size);
     Ok(Chunks {
         chunk_data: Box::new(it),
         current: 0,
-        starts: Box::new(split(chunk as u64, size)),
-        chunk,
+        starts: Box::new(split(chunk_size as u64, size)),
+        chunk_size,
         size,
     })
 }
@@ -35,7 +35,7 @@ pub struct Chunks<T: BufRead + Seek> {
     chunk_data: Box<dyn Iterator<Item = anyhow::Result<T>> + Send>,
     current: u64,
     starts: Box<dyn Iterator<Item = u64>>,
-    chunk: usize,
+    chunk_size: usize,
     size: u64,
 }
 
@@ -48,7 +48,8 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let start = self.starts.next()?;
         let f = self.chunk_data.next()?.ok()?;
-        let (chunk, position) = Chunk::new(f, self.chunk, self.current, start, self.size).ok()?;
+        let (chunk, position) =
+            Chunk::new(f, self.chunk_size, self.current, start, self.size).ok()?;
         self.current = position;
         Some(chunk)
     }
@@ -159,13 +160,13 @@ mod tests {
         quickcheck::QuickCheck::new().quickcheck(s as fn(_, _) -> TestResult);
     }
 
-    fn mem_chunks<'a>(mem: Vec<u8>, chunk: usize, size: u64) -> Chunks<impl BufRead + Seek> {
+    fn mem_chunks<'a>(mem: Vec<u8>, chunk_size: usize, size: u64) -> Chunks<impl BufRead + Seek> {
         let it = (0..usize::MAX).map(move |_| Ok(Cursor::new(mem.clone())));
         Chunks {
             chunk_data: Box::new(it),
             current: 0,
-            starts: Box::new(split(chunk as u64, size)),
-            chunk,
+            starts: Box::new(split(chunk_size as u64, size)),
+            chunk_size,
             size,
         }
     }
