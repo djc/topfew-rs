@@ -16,7 +16,9 @@ pub fn chunks(path: &Path) -> anyhow::Result<Chunks<BufReader<File>>> {
             .map(BufReader::new)
             .with_context(|| "Failed")
     });
-    let chunk_size = chunk_size(size);
+
+    let cpus = num_cpus::get() as u64;
+    let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE) as usize;
     Ok(Chunks {
         chunk_data: Box::new(it),
         current: 0,
@@ -24,11 +26,6 @@ pub fn chunks(path: &Path) -> anyhow::Result<Chunks<BufReader<File>>> {
         chunk_size,
         size,
     })
-}
-
-fn chunk_size(size: u64) -> usize {
-    let cpus = num_cpus::get() as u64;
-    MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE) as usize
 }
 
 pub struct Chunks<T: BufRead + Seek> {
