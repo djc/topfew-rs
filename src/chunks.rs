@@ -60,7 +60,7 @@ pub struct Chunk<C> {
 
 impl<C> Chunk<C> {
     pub fn new(
-        mut c: C,
+        mut chunk: C,
         chunk_size: u64,
         mut position: u64,
         start: u64,
@@ -72,9 +72,9 @@ impl<C> Chunk<C> {
         let skip = if position > start {
             true
         } else if start != position {
-            c.seek(SeekFrom::Start(start - 1))?;
+            chunk.seek(SeekFrom::Start(start - 1))?;
             let mut buf = [0 as u8; 1];
-            if let Ok(1) = c.read(&mut buf) {
+            if let Ok(1) = chunk.read(&mut buf) {
                 buf[0] != b'\n'
             } else {
                 false
@@ -83,15 +83,15 @@ impl<C> Chunk<C> {
             false
         };
 
-        c.seek(SeekFrom::Start(start))?;
+        chunk.seek(SeekFrom::Start(start))?;
         position = if skip {
             let mut skip_leader = String::new();
-            let _ = c.read_line(&mut skip_leader)?;
+            let _ = chunk.read_line(&mut skip_leader)?;
             start + skip_leader.len() as u64
         } else {
             start
         };
-        let lines = c.lines();
+        let lines = chunk.lines();
         let c = Self {
             lines,
             position,
