@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
-use std::path::Path;
+use std::path::PathBuf;
 
 use anyhow::Context;
 
@@ -8,8 +8,7 @@ use anyhow::Context;
 ///
 /// The last line in a chunk potentially reads over the chunk byte boundary to find the line end.
 /// In the same way the first line searches the line end.
-pub fn chunks(path: &Path) -> anyhow::Result<Chunks<BufReader<File>>> {
-    let path = path.to_path_buf();
+pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
     let size = File::open(&path)?.metadata()?.len();
     let it = (0..usize::MAX).map(move |_| {
         File::open(&path)

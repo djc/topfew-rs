@@ -1,4 +1,3 @@
-use std::path::Path;
 use std::str::FromStr;
 
 use anyhow::Error;
@@ -11,7 +10,7 @@ fn main() -> Result<(), Error> {
     let options = Options::from_args();
     let sep = Regex::new(&options.regex)?;
     let kf = KeyFinder::new(Some(options.fields.indices), sep)?;
-    let top_list = top_few_from_stream(&Path::new(&options.file), &kf, options.num)?;
+    let top_list = top_few_from_stream(options.file.into(), &kf, options.num)?;
     for kc in top_list {
         println!("{} {}", kc.count, kc.key);
     }

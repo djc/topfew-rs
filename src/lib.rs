@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use rayon::prelude::*;
 
@@ -11,7 +11,7 @@ pub use counter::{Counter, KeyCount};
 pub use key_finder::KeyFinder;
 
 pub fn top_few_from_stream(
-    path: &Path,
+    path: PathBuf,
     kf: &KeyFinder,
     num: usize,
 ) -> anyhow::Result<Vec<KeyCount>> {
