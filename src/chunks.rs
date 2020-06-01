@@ -33,7 +33,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
     })
 }
 
-pub struct Chunks<T: BufRead + Seek> {
+pub struct Chunks<T> {
     chunk_data: Box<dyn Iterator<Item = anyhow::Result<T>> + Send>,
     position: u64,
     count: usize,
