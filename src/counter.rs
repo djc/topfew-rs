@@ -61,6 +61,9 @@ impl Counter {
 
         top.sort_unstable();
         top.reverse();
+        if self.num > 0 {
+            top.truncate(self.num);
+        }
         top
     }
 
