@@ -185,9 +185,8 @@ mod tests {
 
             let filter = regex::Regex::new(r"\W").unwrap();
             if chunk_size < 1 || i.iter().any(|s| filter.is_match(&s)) {
-                return TestResult::discard();
-            }
-            if let Err(e) = t(i.join("\n"), chunk_size) {
+                TestResult::discard()
+            } else if let Err(e) = t(i.join("\n"), chunk_size) {
                 TestResult::error(format!("{:?}", e))
             } else {
                 TestResult::from_bool(true)
