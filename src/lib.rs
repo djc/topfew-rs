@@ -29,7 +29,6 @@ pub fn top_few_from_stream(
             }
             counter
         })
-        .fold(|| Counter::new(None), sum)
         .reduce(|| Counter::new(Some(num)), sum);
 
     Ok(total.top())
