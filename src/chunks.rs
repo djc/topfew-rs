@@ -148,7 +148,8 @@ mod tests {
     use quickcheck::TestResult;
     use std::io::Cursor;
 
-    fn mem_chunks<'a>(bytes: Vec<u8>, chunk_size: u64, size: u64) -> Chunks<MemoryChunks> {
+    fn mem_chunks<'a>(bytes: Vec<u8>, chunk_size: u64) -> Chunks<MemoryChunks> {
+        let size = bytes.len() as u64;
         let chunks = if chunk_size == 0 {
             0
         } else {
@@ -169,7 +170,7 @@ mod tests {
         fn test_split_buf(i: Vec<String>, chunk_size: u64) -> TestResult {
             fn t(b: String, chunk_size: u64) -> anyhow::Result<()> {
                 let chunks: Vec<_> =
-                    mem_chunks(b.as_bytes().to_owned(), chunk_size, b.len() as u64)
+                    mem_chunks(b.as_bytes().to_owned(), chunk_size)
                         .into_iter()
                         .map(|i| i.collect::<Vec<_>>().join("\n"))
                         .collect();
