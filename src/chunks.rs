@@ -12,19 +12,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<FileChunks>> {
     let size = File::open(&path)?.metadata()?.len();
     let cpus = num_cpus::get() as u64;
     let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE);
-    let chunks = if chunk_size == 0 {
-        0
-    } else {
-        size / chunk_size + 1.min(size % chunk_size)
-    } as usize;
-    Ok(Chunks {
-        source: FileChunks { path },
-        position: 0,
-        count: 0,
-        chunks,
-        chunk_size,
-        size,
-    })
+    Ok(Chunks::new(FileChunks { path }, size, chunk_size))
 }
 
 pub struct Chunks<S: ChunkSource> {
@@ -34,6 +22,25 @@ pub struct Chunks<S: ChunkSource> {
     chunks: usize,
     chunk_size: u64,
     size: u64,
+}
+
+impl<S: ChunkSource> Chunks<S> {
+    fn new(source: S, size: u64, chunk_size: u64) -> Self {
+        let chunks = if chunk_size == 0 {
+            0
+        } else {
+            size / chunk_size + 1.min(size % chunk_size)
+        } as usize;
+
+        Chunks {
+            source,
+            position: 0,
+            count: 0,
+            chunks,
+            chunk_size,
+            size,
+        }
+    }
 }
 
 impl<S: ChunkSource> Iterator for Chunks<S> {
@@ -148,32 +155,19 @@ mod tests {
     use quickcheck::TestResult;
     use std::io::Cursor;
 
-    fn mem_chunks<'a>(bytes: Vec<u8>, chunk_size: u64) -> Chunks<MemoryChunks> {
-        let size = bytes.len() as u64;
-        let chunks = if chunk_size == 0 {
-            0
-        } else {
-            size / chunk_size + 1.min(size % chunk_size)
-        } as usize;
-        Chunks {
-            source: MemoryChunks { bytes },
-            position: 0,
-            count: 0,
-            chunks,
-            chunk_size,
-            size,
-        }
-    }
-
     #[test]
     fn test_chunks() {
         fn test_split_buf(i: Vec<String>, chunk_size: u64) -> TestResult {
             fn t(b: String, chunk_size: u64) -> anyhow::Result<()> {
-                let chunks: Vec<_> =
-                    mem_chunks(b.as_bytes().to_owned(), chunk_size)
-                        .into_iter()
-                        .map(|i| i.collect::<Vec<_>>().join("\n"))
-                        .collect();
+                let bytes = b.as_bytes().to_owned();
+                let size = bytes.len() as u64;
+                let source = MemoryChunks { bytes };
+
+                let chunks: Vec<_> = Chunks::new(source, size, chunk_size)
+                    .into_iter()
+                    .map(|i| i.collect::<Vec<_>>().join("\n"))
+                    .collect();
+
                 let r = regex::Regex::new(r"\s+")?;
                 let e = r.replace_all(&b, " ");
                 let cs = chunks.join(" ");
