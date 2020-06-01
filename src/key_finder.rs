@@ -25,8 +25,8 @@ impl KeyFinder {
 
     pub fn key<'a>(&self, record: &'a str, s: &'a mut String) -> Result<&'a str, Error> {
         let (num, last, keep) = match &self.keys {
-            None => return Ok(record.into()),
-            Some((num, _, _)) if *num == 0 => return Ok(record.into()),
+            None => return Ok(record),
+            Some((num, _, _)) if *num == 0 => return Ok(record),
             Some((num, last, keep)) => (num, last, keep),
         };
 
@@ -37,7 +37,7 @@ impl KeyFinder {
 
         if *num == 1 {
             return match fields.next() {
-                Some(f) => Ok(f.into()),
+                Some(f) => Ok(f),
                 None => Err(anyhow!("not enough fields to make key")),
             };
         }
