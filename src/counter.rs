@@ -67,10 +67,11 @@ impl Counter {
         top
     }
 
-    pub fn merge(&mut self, r: Counter) {
+    pub fn merge(mut self, r: Counter) -> Self {
         for (key, count) in r.counts.iter() {
             self.add(key, *count);
         }
+        self
     }
 }
 

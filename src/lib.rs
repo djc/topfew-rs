@@ -29,12 +29,7 @@ pub fn top_few_from_stream(
             }
             counter
         })
-        .reduce(|| Counter::new(Some(num)), sum);
+        .reduce(|| Counter::new(Some(num)), |l, r| l.merge(r));
 
     Ok(total.top())
-}
-
-fn sum(mut l: Counter, r: Counter) -> Counter {
-    l.merge(r);
-    l
 }
