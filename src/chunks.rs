@@ -8,14 +8,8 @@ use anyhow::Context;
 ///
 /// The last line in a chunk potentially reads over the chunk byte boundary to find the line end.
 /// In the same way the first line searches the line end.
-pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
+pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<FileChunks>> {
     let size = File::open(&path)?.metadata()?.len();
-    let it = (0..usize::MAX).map(move |_| {
-        File::open(&path)
-            .map(BufReader::new)
-            .with_context(|| "Failed")
-    });
-
     let cpus = num_cpus::get() as u64;
     let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE);
     let chunks = if chunk_size == 0 {
@@ -24,7 +18,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
         size / chunk_size + 1.min(size % chunk_size)
     } as usize;
     Ok(Chunks {
-        chunk_data: Box::new(it),
+        source: FileChunks { path },
         position: 0,
         count: 0,
         chunks,
@@ -33,8 +27,8 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<BufReader<File>>> {
     })
 }
 
-pub struct Chunks<T> {
-    chunk_data: Box<dyn Iterator<Item = anyhow::Result<T>> + Send>,
+pub struct Chunks<S: ChunkSource> {
+    source: S,
     position: u64,
     count: usize,
     chunks: usize,
@@ -42,11 +36,8 @@ pub struct Chunks<T> {
     size: u64,
 }
 
-impl<T> Iterator for Chunks<T>
-where
-    T: BufRead + Seek,
-{
-    type Item = Chunk<T>;
+impl<S: ChunkSource> Iterator for Chunks<S> {
+    type Item = Chunk<S::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.count == self.chunks {
@@ -55,7 +46,7 @@ where
 
         let start = (self.count as u64) * self.chunk_size;
         self.count += 1;
-        let f = self.chunk_data.next()?.ok()?;
+        let f = self.source.call().ok()?;
         let (chunk, position) =
             Chunk::new(f, self.chunk_size, self.position, start, self.size).ok()?;
         self.position = position;
@@ -128,6 +119,26 @@ where
     }
 }
 
+pub trait ChunkSource: Sized {
+    type Item: Seek + BufRead;
+
+    fn call(&self) -> anyhow::Result<Self::Item>;
+}
+
+pub struct FileChunks {
+    path: PathBuf,
+}
+
+impl ChunkSource for FileChunks {
+    type Item = BufReader<File>;
+
+    fn call(&self) -> anyhow::Result<Self::Item> {
+        File::open(&self.path)
+            .map(BufReader::new)
+            .with_context(|| "Failed")
+    }
+}
+
 const MIN_CHUNK_SIZE: u64 = 512 * 1024;
 const MAX_CHUNK_SIZE: u64 = 64 * 1024 * 1024;
 
@@ -137,15 +148,14 @@ mod tests {
     use quickcheck::TestResult;
     use std::io::Cursor;
 
-    fn mem_chunks<'a>(mem: Vec<u8>, chunk_size: u64, size: u64) -> Chunks<impl BufRead + Seek> {
-        let it = (0..usize::MAX).map(move |_| Ok(Cursor::new(mem.clone())));
+    fn mem_chunks<'a>(bytes: Vec<u8>, chunk_size: u64, size: u64) -> Chunks<MemoryChunks> {
         let chunks = if chunk_size == 0 {
             0
         } else {
             size / chunk_size + 1.min(size % chunk_size)
         } as usize;
         Chunks {
-            chunk_data: Box::new(it),
+            source: MemoryChunks { bytes },
             position: 0,
             count: 0,
             chunks,
@@ -191,5 +201,17 @@ mod tests {
         quickcheck::QuickCheck::new()
             .max_tests(300)
             .quickcheck(test_split_buf as fn(_, _) -> TestResult);
+    }
+
+    struct MemoryChunks {
+        bytes: Vec<u8>,
+    }
+
+    impl ChunkSource for MemoryChunks {
+        type Item = Cursor<Vec<u8>>;
+
+        fn call(&self) -> anyhow::Result<Self::Item> {
+            Ok(Cursor::new(self.bytes.clone()))
+        }
     }
 }
