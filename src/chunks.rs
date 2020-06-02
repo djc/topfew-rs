@@ -8,14 +8,14 @@ use anyhow::Context;
 ///
 /// The last line in a chunk potentially reads over the chunk byte boundary to find the line end.
 /// In the same way the first line searches the line end.
-pub fn chunks(path: PathBuf) -> anyhow::Result<Chunks<FileChunks>> {
+pub fn chunks(path: PathBuf) -> anyhow::Result<Chunker<FileSource>> {
     let size = File::open(&path)?.metadata()?.len();
     let cpus = num_cpus::get() as u64;
     let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE);
-    Ok(Chunks::new(FileChunks { path }, size, chunk_size))
+    Ok(Chunker::new(FileSource { path }, size, chunk_size))
 }
 
-pub struct Chunks<S: ChunkSource> {
+pub struct Chunker<S: Source> {
     source: S,
     position: u64,
     count: usize,
@@ -24,7 +24,7 @@ pub struct Chunks<S: ChunkSource> {
     size: u64,
 }
 
-impl<S: ChunkSource> Chunks<S> {
+impl<S: Source> Chunker<S> {
     fn new(source: S, size: u64, chunk_size: u64) -> Self {
         let chunks = if chunk_size == 0 {
             0
@@ -32,7 +32,7 @@ impl<S: ChunkSource> Chunks<S> {
             size / chunk_size + 1.min(size % chunk_size)
         } as usize;
 
-        Chunks {
+        Chunker {
             source,
             position: 0,
             count: 0,
@@ -43,7 +43,7 @@ impl<S: ChunkSource> Chunks<S> {
     }
 }
 
-impl<S: ChunkSource> Iterator for Chunks<S> {
+impl<S: Source> Iterator for Chunker<S> {
     type Item = Chunk<S::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -126,17 +126,17 @@ where
     }
 }
 
-pub trait ChunkSource: Sized {
+pub trait Source: Sized {
     type Item: Seek + BufRead;
 
     fn call(&self) -> anyhow::Result<Self::Item>;
 }
 
-pub struct FileChunks {
+pub struct FileSource {
     path: PathBuf,
 }
 
-impl ChunkSource for FileChunks {
+impl Source for FileSource {
     type Item = BufReader<File>;
 
     fn call(&self) -> anyhow::Result<Self::Item> {
@@ -161,9 +161,9 @@ mod tests {
             fn t(b: String, chunk_size: u64) -> anyhow::Result<()> {
                 let bytes = b.as_bytes().to_owned();
                 let size = bytes.len() as u64;
-                let source = MemoryChunks { bytes };
+                let source = MemorySource { bytes };
 
-                let chunks: Vec<_> = Chunks::new(source, size, chunk_size)
+                let chunks: Vec<_> = Chunker::new(source, size, chunk_size)
                     .into_iter()
                     .map(|i| i.collect::<Vec<_>>().join("\n"))
                     .collect();
@@ -197,11 +197,11 @@ mod tests {
             .quickcheck(test_split_buf as fn(_, _) -> TestResult);
     }
 
-    struct MemoryChunks {
+    struct MemorySource {
         bytes: Vec<u8>,
     }
 
-    impl ChunkSource for MemoryChunks {
+    impl Source for MemorySource {
         type Item = Cursor<Vec<u8>>;
 
         fn call(&self) -> anyhow::Result<Self::Item> {
