@@ -53,7 +53,7 @@ impl<S: ChunkSource> Iterator for Chunks<S> {
 
         let start = (self.count as u64) * self.chunk_size;
         self.count += 1;
-        let input = self.source.call().ok()?;
+        let input = self.source.provide().ok()?;
         let (chunk, position) =
             Chunk::new(input, self.chunk_size, self.position, start, self.size).ok()?;
         self.position = position;
@@ -129,7 +129,7 @@ where
 pub trait ChunkSource: Sized {
     type Item: Seek + BufRead;
 
-    fn call(&self) -> anyhow::Result<Self::Item>;
+    fn provide(&self) -> anyhow::Result<Self::Item>;
 }
 
 pub struct FileChunks {
@@ -139,7 +139,7 @@ pub struct FileChunks {
 impl ChunkSource for FileChunks {
     type Item = BufReader<File>;
 
-    fn call(&self) -> anyhow::Result<Self::Item> {
+    fn provide(&self) -> anyhow::Result<Self::Item> {
         File::open(&self.path)
             .map(BufReader::new)
             .with_context(|| "Failed")
@@ -204,7 +204,7 @@ mod tests {
     impl ChunkSource for MemoryChunks {
         type Item = Cursor<Vec<u8>>;
 
-        fn call(&self) -> anyhow::Result<Self::Item> {
+        fn provide(&self) -> anyhow::Result<Self::Item> {
             Ok(Cursor::new(self.bytes.clone()))
         }
     }
