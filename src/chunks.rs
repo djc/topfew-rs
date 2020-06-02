@@ -53,9 +53,9 @@ impl<S: ChunkSource> Iterator for Chunks<S> {
 
         let start = (self.count as u64) * self.chunk_size;
         self.count += 1;
-        let f = self.source.call().ok()?;
+        let input = self.source.call().ok()?;
         let (chunk, position) =
-            Chunk::new(f, self.chunk_size, self.position, start, self.size).ok()?;
+            Chunk::new(input, self.chunk_size, self.position, start, self.size).ok()?;
         self.position = position;
         Some(chunk)
     }
@@ -70,7 +70,7 @@ pub struct Chunk<C> {
 
 impl<C> Chunk<C> {
     pub fn new(
-        mut chunk: C,
+        mut input: C,
         chunk_size: u64,
         mut position: u64,
         start: u64,
@@ -82,9 +82,9 @@ impl<C> Chunk<C> {
         let skip = if position > start {
             true
         } else if start != position {
-            chunk.seek(SeekFrom::Start(start - 1))?;
+            input.seek(SeekFrom::Start(start - 1))?;
             let mut buf = [0 as u8; 1];
-            if let Ok(1) = chunk.read(&mut buf) {
+            if let Ok(1) = input.read(&mut buf) {
                 buf[0] != b'\n'
             } else {
                 false
@@ -93,15 +93,15 @@ impl<C> Chunk<C> {
             false
         };
 
-        chunk.seek(SeekFrom::Start(start))?;
+        input.seek(SeekFrom::Start(start))?;
         position = if skip {
             let mut skip_leader = String::new();
-            let _ = chunk.read_line(&mut skip_leader)?;
+            let _ = input.read_line(&mut skip_leader)?;
             start + skip_leader.len() as u64
         } else {
             start
         };
-        let lines = chunk.lines();
+        let lines = input.lines();
         let c = Self {
             lines,
             position,
