@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use regex::Regex;
 use structopt::StructOpt;
 
@@ -8,6 +8,12 @@ use topfew::{top_few_from_stream, KeyFinder};
 
 fn main() -> Result<(), Error> {
     let options = Options::from_args();
+    if options.num < 1 {
+        return Err(anyhow!(
+            "--num needs to be 1 or larger, got {}",
+            options.num
+        ));
+    }
     let sep = Regex::new(&options.regex)?;
     let kf = KeyFinder::new(Some(options.fields.indices), sep)?;
     let top_list = top_few_from_stream(options.file.into(), &kf, options.num)?;
