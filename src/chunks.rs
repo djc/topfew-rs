@@ -10,9 +10,7 @@ use anyhow::Context;
 /// In the same way the first line searches the line end.
 pub fn chunks(path: PathBuf) -> anyhow::Result<Chunker<FileSource>> {
     let size = File::open(&path)?.metadata()?.len();
-    let cpus = num_cpus::get() as u64;
-    let chunk_size = MAX_CHUNK_SIZE.min(size / cpus / 10).max(MIN_CHUNK_SIZE);
-    Ok(Chunker::new(FileSource { path }, size, chunk_size))
+    Ok(Chunker::new(FileSource { path }, size, size / num_cpus::get() as u64))
 }
 
 pub struct Chunker<S: Source> {
@@ -145,9 +143,6 @@ impl Source for FileSource {
             .with_context(|| "Failed")
     }
 }
-
-const MIN_CHUNK_SIZE: u64 = 512 * 1024;
-const MAX_CHUNK_SIZE: u64 = 64 * 1024 * 1024;
 
 #[cfg(test)]
 mod tests {
