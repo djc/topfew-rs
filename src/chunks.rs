@@ -10,7 +10,11 @@ use anyhow::Context;
 /// In the same way the first line searches the line end.
 pub fn chunks(path: PathBuf) -> anyhow::Result<Chunker<FileSource>> {
     let size = File::open(&path)?.metadata()?.len();
-    Ok(Chunker::new(FileSource { path }, size, size / num_cpus::get() as u64))
+    Ok(Chunker::new(
+        FileSource { path },
+        size,
+        size / num_cpus::get() as u64,
+    ))
 }
 
 pub struct Chunker<S: Source> {
