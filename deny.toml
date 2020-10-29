@@ -1,0 +1,4 @@
+[licenses]
+allow-osi-fsf-free = "either"
+copyleft = "warn"
+exceptions = [{ allow = ["GPL-3.0"], name = "topfew" }]
