@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Error};
-use regex::Regex;
 use structopt::StructOpt;
 
 use topfew::{top_few_from_stream, KeyFinder};
@@ -14,8 +13,7 @@ fn main() -> Result<(), Error> {
             options.num
         ));
     }
-    let sep = Regex::new(&options.regex)?;
-    let kf = KeyFinder::new(Some(options.fields.indices), sep)?;
+    let kf = KeyFinder::new(Some(options.fields.indices));
     let top_list = top_few_from_stream(options.file.into(), &kf, options.num)?;
     for kc in top_list {
         println!("{} {}", kc.count, kc.key);
@@ -32,9 +30,6 @@ struct Options {
     /// Top number of matches to show
     #[structopt(long, short = "n", default_value = "10")]
     num: usize,
-    /// Regular expression used to split lines into fields
-    #[structopt(long, short = "e", default_value = "[ \\t]")]
-    regex: String,
     /// File to search
     file: String,
 }
