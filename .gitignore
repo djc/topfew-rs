@@ -1,2 +1,4 @@
 /target
-access_log
+access_log*
+.DS_Store
+*.svg
