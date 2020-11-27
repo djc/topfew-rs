@@ -10,12 +10,12 @@ categories = ["command-line-utilities", "text-processing"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1"
-regex = "1"
-structopt = "0.3"
 ahash = "0.6.1"
-rayon = "1.3"
+anyhow = "1"
 num_cpus = "1.13"
+regex = "1"
+rayon = "1.3"
+structopt = "0.3"
 
 [dev-dependencies]
 quickcheck = "0.9"
