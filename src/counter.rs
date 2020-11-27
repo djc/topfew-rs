@@ -1,4 +1,5 @@
 use ahash::AHashMap;
+use smartstring::alias::String;
 
 #[derive(Default)]
 pub struct Counter {
@@ -24,7 +25,7 @@ impl Counter {
                 *count
             }
             None => {
-                self.counts.insert(key.to_owned(), added);
+                self.counts.insert(key.into(), added);
                 added
             }
         };
@@ -38,7 +39,7 @@ impl Counter {
             return;
         }
 
-        self.top.insert(key.to_owned(), count);
+        self.top.insert(key.into(), count);
         if self.top.len() < self.num * 2 {
             return;
         }
@@ -55,7 +56,7 @@ impl Counter {
         for (key, &count) in &self.top {
             top.push(KeyCount {
                 count,
-                key: key.into(),
+                key: key.clone(),
             });
         }
 
