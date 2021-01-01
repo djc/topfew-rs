@@ -85,7 +85,7 @@ impl<C> Chunk<C> {
             true
         } else if start != position {
             input.seek(SeekFrom::Start(start - 1))?;
-            let mut buf = [0 as u8; 1];
+            let mut buf = [0; 1];
             if let Ok(1) = input.read(&mut buf) {
                 buf[0] != b'\n'
             } else {
