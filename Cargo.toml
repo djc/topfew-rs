@@ -19,7 +19,7 @@ smartstring = "0.2.5"
 structopt = "0.3"
 
 [dev-dependencies]
-quickcheck = "0.9"
+quickcheck = "1.0"
 
 [profile.release]
 codegen-units = 1
