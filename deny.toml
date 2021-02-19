@@ -1,4 +1,7 @@
 [licenses]
 allow-osi-fsf-free = "either"
 copyleft = "warn"
-exceptions = [{ allow = ["GPL-3.0"], name = "topfew" }]
+exceptions = [
+    { allow = ["GPL-3.0"], name = "topfew" },
+    { allow = ["MPL-2.0"], name = "smartstring" },
+]
