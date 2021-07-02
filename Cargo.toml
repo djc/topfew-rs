@@ -15,7 +15,7 @@ anyhow = "1"
 num_cpus = "1.13"
 regex = "1"
 rayon = "1.3"
-smartstring = "0.2.5"
+smartstring = "0.2.7"
 structopt = "0.3"
 
 [dev-dependencies]
