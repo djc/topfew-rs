@@ -13,6 +13,9 @@ updates:
   - dependency-name: anyhow
     versions:
     - "> 1.0.38, < 2"
+  - dependency-name: num_cpus
+    versions:
+    - "> 1.13.0, < 2"
   - dependency-name: rayon
     versions:
     - "> 1.5.0, < 2"
