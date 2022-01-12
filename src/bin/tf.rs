@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Error};
 use regex::Regex;
-use structopt::StructOpt;
+use clap::Parser;
 
 use topfew::{top_few_from_stream, KeyFinder};
 
 fn main() -> Result<(), Error> {
-    let options = Options::from_args();
+    let options = Options::parse();
     if options.num < 1 {
         return Err(anyhow!(
             "--num needs to be 1 or larger, got {}",
@@ -23,17 +23,17 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "topfew")]
+#[derive(Debug, Parser)]
+#[clap(name = "topfew")]
 struct Options {
     /// Fields to use as part of the line's key
-    #[structopt(long, short)]
+    #[clap(long, short)]
     fields: FieldSpec,
     /// Top number of matches to show
-    #[structopt(long, short = "n", default_value = "10")]
+    #[clap(long, short = 'n', default_value = "10")]
     num: usize,
     /// Regular expression used to split lines into fields
-    #[structopt(long, short = "e", default_value = "[ \\t]")]
+    #[clap(long, short = 'e', default_value = "[ \\t]")]
     regex: String,
     /// File to search
     file: String,
