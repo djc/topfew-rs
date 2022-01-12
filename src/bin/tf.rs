@@ -30,7 +30,7 @@ struct Options {
     #[clap(long, short)]
     fields: FieldSpec,
     /// Top number of matches to show
-    #[clap(long, short = 'n', default_value = "10")]
+    #[clap(long, short, default_value = "10")]
     num: usize,
     /// Regular expression used to split lines into fields
     #[clap(long, short = 'e', default_value = "[ \\t]")]
