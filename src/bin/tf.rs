@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Error};
-use regex::Regex;
 use clap::Parser;
+use regex::Regex;
 
 use topfew::{top_few_from_stream, KeyFinder};
 
