@@ -4,8 +4,6 @@ on:
   push:
     branches: ['main']
   pull_request:
-  schedule:
-    - cron: "32 4 * * 5"
 
 jobs:
   Test:
