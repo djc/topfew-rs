@@ -39,7 +39,7 @@ struct Options {
     file: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct FieldSpec {
     indices: Vec<usize>,
 }
