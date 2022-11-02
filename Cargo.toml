@@ -10,7 +10,7 @@ categories = ["command-line-utilities", "text-processing"]
 edition = "2018"
 
 [dependencies]
-ahash = "0.8.0"
+ahash = "0.8.1"
 anyhow = "1"
 num_cpus = "1.13"
 regex = "1"
