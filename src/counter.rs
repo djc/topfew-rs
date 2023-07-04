@@ -46,7 +46,7 @@ impl Counter {
 
         let mut top_values = self.top.values().collect::<Vec<_>>();
         top_values.sort_unstable();
-        let threshold = *top_values[self.num as usize - 1];
+        let threshold = *top_values[self.num - 1];
         self.threshold = threshold;
         self.top.retain(|_, v| *v > threshold);
     }

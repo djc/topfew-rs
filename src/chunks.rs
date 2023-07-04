@@ -163,7 +163,6 @@ mod tests {
                 let source = MemorySource { bytes };
 
                 let chunks: Vec<_> = Chunker::new(source, size, chunk_size)
-                    .into_iter()
                     .map(|i| i.collect::<Vec<_>>().join("\n"))
                     .collect();
 
