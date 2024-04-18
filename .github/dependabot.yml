@@ -3,28 +3,12 @@ updates:
 - package-ecosystem: cargo
   directory: "/"
   schedule:
-    interval: daily
-    time: "04:00"
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: ahash
-    versions:
-    - "> 0.7.0, < 0.8"
-  - dependency-name: anyhow
-    versions:
-    - "> 1.0.38, < 2"
-  - dependency-name: num_cpus
-    versions:
-    - "> 1.13.0, < 2"
-  - dependency-name: rayon
-    versions:
-    - "> 1.5.0, < 2"
-  - dependency-name: regex
-    versions:
-    - "> 1.4.3, < 2"
-  - dependency-name: smartstring
-    versions:
-    - "> 0.2.6, < 0.3"
-  - dependency-name: structopt
-    versions:
-    - "> 0.3.21, < 0.4"
+    interval: weekly
+  groups:
+    crates-io:
+      patterns:
+        - ".*"
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
