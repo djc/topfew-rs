@@ -1,10 +1,10 @@
-use ahash::AHashMap;
+use rustc_hash::FxHashMap;
 use smartstring::alias::String;
 
 #[derive(Default)]
 pub struct Counter {
-    counts: AHashMap<String, u64>,
-    top: AHashMap<String, u64>,
+    counts: FxHashMap<String, u64>,
+    top: FxHashMap<String, u64>,
     threshold: u64,
     num: usize,
 }
