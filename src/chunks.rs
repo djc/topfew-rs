@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::PathBuf;
+use std::thread::available_parallelism;
 
 use anyhow::Context;
 
@@ -13,7 +14,7 @@ pub fn chunks(path: PathBuf) -> anyhow::Result<Chunker<FileSource>> {
     Ok(Chunker::new(
         FileSource { path },
         size,
-        size / num_cpus::get() as u64,
+        size / available_parallelism()?.get() as u64,
     ))
 }
 
