@@ -6,7 +6,7 @@ repository = "https://github.com/djc/topfew-rs"
 description = "CLI to find high frequency occurrences in structured text files"
 keywords = ["cli"]
 categories = ["command-line-utilities", "text-processing"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 ahash = "0.8.0"
