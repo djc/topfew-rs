@@ -12,22 +12,16 @@ Thanks to [Thomas Andreas Jung](https://github.com/blob79) for contributing subs
 performance improvements.
 
 ```
-topfew 0.1.0
+Usage: tf [OPTIONS] --fields <FIELDS> <FILE>
 
-USAGE:
-    tf [OPTIONS] <file> --fields <fields>
+Arguments:
+  <FILE>  File to search
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-    -f, --fields <fields>    Fields to use as part of the line's key
-    -n, --num <num>          Top number of matches to show [default: 10]
-    -e, --regex <regex>      Regular expression used to split lines into fields [default: [ \t]]
-
-ARGS:
-    <file>    File to search
+Options:
+  -f, --fields <FIELDS>  Fields to use as part of the line's key
+  -n, --num <NUM>        Top number of matches to show [default: 10]
+  -e, --regex <REGEX>    Regular expression used to split lines into fields [default: "[ \\t]"]
+  -h, --help             Print help
 ```
 
 If you have the Rust toolchain installed, you can install it with `cargo install topfew`.
