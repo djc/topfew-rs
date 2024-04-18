@@ -16,6 +16,9 @@ rustc-hash = "1.1"
 smartstring = "1"
 clap = { version = "4.0.2", features = ["derive"] }
 
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"
+
 [dev-dependencies]
 quickcheck = "1.0"
 
