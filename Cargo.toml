@@ -1,7 +1,7 @@
 [package]
 name = "topfew"
 version = "0.2.4"
-license = "GPL-3.0"
+license = "GPL-3.0-only"
 repository = "https://github.com/djc/topfew-rs"
 description = "CLI to find high frequency occurrences in structured text files"
 keywords = ["cli"]

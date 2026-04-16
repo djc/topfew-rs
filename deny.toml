@@ -1,5 +1,5 @@
 [licenses]
 allow = ["Apache-2.0", "MIT", "MPL-2.0", "Unicode-3.0"]
 exceptions = [
-    { allow = ["GPL-3.0"], name = "topfew" },
+    { allow = ["GPL-3.0-only"], name = "topfew" },
 ]
